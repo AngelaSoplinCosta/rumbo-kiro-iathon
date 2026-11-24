@@ -20,4 +20,4 @@ Python, HTML, CSS, JavaScript, AWS Lambda, API Gateway, DynamoDB, Amazon Bedrock
 
 ## Estado de esta copia
 
-Repositorio privado de preparación para portafolio. El archivo original de la entrega está en revisión; el código aún no ha sido incorporado aquí. Antes de compartirlo públicamente se revisarán los archivos de configuración y se aclararán los acuerdos del equipo sobre publicación y créditos.
+Repositorio privado de preparación para portafolio. Incluye una copia del código y los documentos del ZIP de la entrega; se excluyeron cachés y archivos generados. Los identificadores de cuenta y enlaces del despliegue original se sustituyeron por ejemplos: es necesario configurar los recursos propios para desplegar. Antes de compartirlo públicamente se completará la revisión de seguridad y se aclararán los acuerdos del equipo sobre publicación y créditos.
