@@ -8,7 +8,7 @@ El proyecto explora cómo ayudar a estudiantes a organizar su aprendizaje a part
 
 ## Equipo
 
-Proyecto colaborativo de Angela Soplin Costa, Ruth Nadiezhda Araujo Carhuancho, Riggel Rojas, Jorge Quispe Bendezú, Ricardo Quispe Fernandez y Geraldo Emilio Sosa Sosa. Las contribuciones individuales están pendientes de precisar con el equipo.
+Proyecto colaborativo de Angela Soplin Costa, Ruth Nadiezhda Araujo Carhuancho, Riggel Rojas, Jorge Quispe Bendezú, Ricardo Quispe Fernandez y Geraldo Emilio Sosa Sosa. Angela participó en mejoras de la propuesta, gamificación, flujo de experiencia de usuario (UX) y pruebas. La distribución detallada de las contribuciones del resto del equipo está pendiente de precisar.
 
 ## Alcance del entregable
 
