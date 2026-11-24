@@ -5,7 +5,7 @@
   const view = document.querySelector("#view");
   const steps = document.querySelector("#steps");
   const mobile = document.querySelector("#mobile-progress");
-  const intro = (eyebrow, title, copy) => `<div class="intro"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${copy}</p></div><div class="tutor"><img src="mascota.svg" alt="Conejito tutor con birrete"><span class="tutor-caption">Tu tutor de estudio ✦</span></div></div>`;
+  const intro = (eyebrow, title, copy) => `<div class="intro"><div><div class="eyebrow">${eyebrow}</div><h1>${title}</h1><p>${copy}</p></div><div class="tutor"><img src="mascota.svg" alt="Perrito peruano tutor con birrete"><span class="tutor-caption">Tu tutor de estudio ✦</span></div></div>`;
   function render() {
     steps.innerHTML = labels.map((label, i) => `<li class="${i === state.step ? "active" : i < state.step ? "done" : ""}" ${i === state.step ? 'aria-current="step"' : ""}><span class="num">${i < state.step ? "✓" : i + 1}</span>${label}</li>`).join("");
     mobile.textContent = `PASO ${state.step + 1} DE 4 · ${labels[state.step].toUpperCase()}`;
