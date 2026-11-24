@@ -40,7 +40,7 @@ La demo se ejecuta localmente y no necesita una cuenta AWS para **explorar las p
 2. Abre `http://localhost:8000/login.html`. Usa el acceso de demostración **usuario `demo` / contraseña `demo01`**. Es una simulación local, no autenticación segura.
 3. Completa los pasos de configuración inicial. Al terminar se abre la pantalla de carga; los datos del formulario son parte de la interfaz y no se confirma que personalicen una ruta.
 4. En el menú, abre **Hoy** y selecciona **Física I (Demo)** para explorar un espacio de ejemplo con temas y sesiones ficticias.
-5. En el menú de la aplicación, abre **Camino** o **Sesión** para observar la ruta y probar una actividad guiada. La sesión utiliza contenido fijo.
+5. Para observar la ruta y probar una actividad guiada, abre `http://localhost:8000/ruta.html` y luego `http://localhost:8000/sesion.html`. La sesión utiliza contenido fijo.
 6. En **Panel de demo**, puedes simular tres días sin estudiar y regresar a **Hoy** para observar el mensaje de reenganche. Esta simulación usa datos locales si no hay un curso conectado.
 
 **Nota:** los enlaces para cargar PDF, generar rutas reales o consultar la API no funcionan con la configuración de ejemplo de esta copia. Algunas pantallas pueden mostrar información fija o tener limitaciones de interacción. La demo depende de JavaScript y de recursos que pueden requerir conexión.
