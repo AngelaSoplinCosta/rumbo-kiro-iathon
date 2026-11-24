@@ -1,29 +1,92 @@
-# Rumbo — compañero de estudio
+# Rumbo
+### Un compañero de estudio para retomar el aprendizaje
 
-Rumbo es un prototipo desarrollado por el equipo **T034 · Los más Kiros** para el Kiro IAThon de AWS, en el reto «Compañero de estudio contra el abandono».
+**Proyecto colaborativo · Kiro IAThon de AWS · Equipo T034, Los más Kiros**
 
-## Problema y propuesta
+Rumbo es un prototipo que explora cómo ayudar a estudiantes a organizar su estudio y retomar el ritmo cuando se atrasan. El equipo abordó un problema frecuente: tener materiales, una fecha de examen y poco tiempo, pero no saber por dónde empezar.
 
-El proyecto explora cómo ayudar a estudiantes a organizar su aprendizaje a partir de materiales de estudio, una fecha objetivo y el seguimiento de su avance.
+> **Estado:** prototipo de hackathon. La interfaz incluye datos simulados y la API es una pieza independiente. Esta copia no demuestra un recorrido integrado de extremo a extremo ni un despliegue activo.
 
-## Equipo
+## Mi participación y equipo
 
-Proyecto colaborativo de Angela Soplin Costa, Ruth Nadiezhda Araujo Carhuancho, Riggel Rojas, Jorge Quispe Bendezú, Ricardo Quispe Fernandez y Geraldo Emilio Sosa Sosa. Angela participó en mejoras de la propuesta, gamificación, flujo de experiencia de usuario (UX) y pruebas. La distribución detallada de las contribuciones del resto del equipo está pendiente de precisar.
+**Angela Soplin Costa** participó en mejoras de la propuesta, gamificación, flujo de experiencia de usuario (UX) y pruebas.
 
-## Alcance del entregable
+El equipo **Los más Kiros** estuvo integrado por Angela Soplin Costa, Ruth Nadiezhda Araujo Carhuancho, Riggel Rojas, Jorge Quispe Bendezú, Ricardo Quispe Fernandez y Geraldo Emilio Sosa Sosa. El proyecto es resultado de un trabajo colaborativo.
 
-La documentación del proyecto describe una interfaz web estática con datos simulados y una API serverless independiente. El código entregado incluye módulos de planificación, IA y seguimiento del riesgo. La integración del flujo completo entre interfaz, API y persistencia requiere validación adicional; no debe asumirse que todas las funciones propuestas estaban conectadas o desplegadas.
+## El problema y la solución propuesta
 
-## Tecnologías del prototipo
+El atraso puede convertirse en una acumulación de tareas y desmotivación. La propuesta de Rumbo conecta una ruta de estudio con sesiones breves y señales de seguimiento para facilitar que el estudiante retome.
 
-Python, HTML, CSS, JavaScript, AWS Lambda, API Gateway, DynamoDB, Amazon Bedrock, S3, CloudFront y AWS SAM. La presencia de componentes o infraestructura en el proyecto no acredita por sí sola su funcionamiento actual.
+| Momento | Experiencia planteada | Estado de esta copia |
+| --- | --- | --- |
+| 1. Comenzar | Entrar y revisar una configuración inicial. | La interfaz usa una sesión de demostración en el navegador. |
+| 2. Organizar | Crear un espacio, añadir material y definir una fecha. | Existe una interfaz para material propio; necesita una API configurada y validación adicional. |
+| 3. Planificar | Explorar temas y una ruta con sesiones de estudio. | Hay un curso de ejemplo con datos ficticios; el backend contiene lógica de planificación. |
+| 4. Practicar | Revisar un tema, responder una pregunta y explorar una flashcard. | Existe una sesión guiada con contenido simulado. |
+| 5. Retomar | Identificar atraso y proponer una acción más pequeña. | El panel de demo permite simular riesgo; el backend incluye lógica de seguimiento que requiere validación integrada. |
 
-## Estado de esta copia
+Las citas, documentos y estadísticas de la demo son ejemplos de interfaz. No representan archivos reales ni prueban que el sistema verifique automáticamente las fuentes.
 
-Repositorio privado de preparación para portafolio. Incluye una copia del código y los documentos del ZIP de la entrega; se excluyeron cachés y archivos generados. Los identificadores de cuenta y enlaces del despliegue original se sustituyeron por ejemplos: es necesario configurar los recursos propios para desplegar. El equipo autorizó compartir el código públicamente. Esta copia requiere una revisión de seguridad antes de exponerse como servicio y la distribución detallada de las contribuciones del equipo está pendiente de precisar.
+## Recorrido de la demostración
 
-## Verificación de la copia
+La demo se ejecuta localmente y no necesita una cuenta AWS para **explorar las pantallas de ejemplo**.
 
-Se ejecutaron **91 pruebas automatizadas** de los directorios `src/` y `tests/` del ZIP entregado, con Python 3.12, pytest y boto3; todas pasaron. Estas pruebas usan datos y servicios simulados y no verifican un despliegue AWS ni un recorrido integrado de usuario. El código de esos directorios se copió al repositorio sin cambios de funcionalidad.
+1. Descarga el repositorio y, desde su carpeta raíz, inicia un servidor estático:
 
-Una búsqueda automatizada de patrones habituales en los archivos actuales no encontró claves AWS, claves privadas ni tokens GitHub evidentes. Esto no equivale a una auditoría exhaustiva de seguridad ni demuestra que el prototipo sea apto para producción. Las direcciones de AWS e identificadores originales fueron sustituidos por valores de ejemplo; no se debe desplegar la configuración sin revisarla y ajustarla.
+   ```bash
+   python3 -m http.server 8000 --directory web
+   ```
+
+2. Abre `http://localhost:8000/login.html`. Usa el acceso de demostración **usuario `demo` / contraseña `demo01`**. Es una simulación local, no autenticación segura.
+3. Completa los pasos de configuración inicial. Al terminar se abre la pantalla de carga; los datos del formulario son parte de la interfaz y no se confirma que personalicen una ruta.
+4. En el menú, abre **Hoy** y selecciona **Física I (Demo)** para explorar un espacio de ejemplo con temas y sesiones ficticias.
+5. En el menú de la aplicación, abre **Camino** o **Sesión** para observar la ruta y probar una actividad guiada. La sesión utiliza contenido fijo.
+6. En **Panel de demo**, puedes simular tres días sin estudiar y regresar a **Hoy** para observar el mensaje de reenganche. Esta simulación usa datos locales si no hay un curso conectado.
+
+**Nota:** los enlaces para cargar PDF, generar rutas reales o consultar la API no funcionan con la configuración de ejemplo de esta copia. Algunas pantallas pueden mostrar información fija o tener limitaciones de interacción. La demo depende de JavaScript y de recursos que pueden requerir conexión.
+
+## Arquitectura del prototipo
+
+```mermaid
+flowchart LR
+    A["Interfaz web: demo"] --> B["API Gateway + Lambda"]
+    B --> C["Lógica de estudio y riesgo"]
+    C --> D["DynamoDB"]
+    C --> E["Amazon Bedrock"]
+```
+
+El diagrama representa los componentes considerados en el proyecto; las flechas no certifican que el flujo esté conectado en esta copia. La interfaz web también puede recorrerse con datos simulados. El proyecto contiene configuración para S3 y CloudFront, además de infraestructura AWS SAM.
+
+## Explorar el código
+
+- [web/](web/): pantallas HTML, CSS y JavaScript del prototipo.
+- [src/app.py](src/app.py): entrada y rutas de la API.
+- [src/ruta.py](src/ruta.py): lógica de planificación.
+- [src/ia.py](src/ia.py): integración propuesta con Amazon Bedrock.
+- [src/riesgo.py](src/riesgo.py): señales e intervenciones de seguimiento.
+- [tests/](tests/): pruebas automatizadas con dependencias simuladas.
+- [template.yaml](template.yaml): infraestructura de la API con AWS SAM.
+- [.kiro/specs/rumbo/](.kiro/specs/rumbo/): especificaciones del proyecto.
+
+## Pruebas y límites
+
+En una ejecución local con Python 3.12, pytest y boto3 se completaron **91 pruebas** de `src/` y `tests/`. Utilizan dependencias o datos simulados y **no verifican AWS ni el recorrido integrado de usuario**.
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install pytest boto3
+AWS_EC2_METADATA_DISABLED=true python -m pytest -q tests
+```
+
+Los identificadores de cuenta y enlaces de despliegue de la entrega se reemplazaron por valores de ejemplo. La autenticación de demostración, las referencias simuladas y las rutas de API requieren revisión antes de cualquier uso con información real. Una revisión automatizada de patrones de credenciales no sustituye una auditoría de seguridad.
+
+## Aprendizajes y próximos pasos
+
+- Conectar un único recorrido desde la interfaz hasta la API y verificar la persistencia.
+- Revisar accesibilidad, manejo de errores y experiencia en dispositivos móviles.
+- Validar las referencias que acompañan a las respuestas de IA.
+- Incorporar autenticación y aislamiento de datos antes de trabajar con usuarios reales.
+- Mejorar las pruebas de integración y documentar el despliegue reproducible.
+
+El equipo autorizó compartir el código. La distribución detallada de las contribuciones individuales y las condiciones de licencia están pendientes de precisar.
