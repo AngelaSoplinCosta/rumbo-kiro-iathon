@@ -28,6 +28,10 @@ Se ejecutaron **91 pruebas automatizadas** de los directorios `src/` y `tests/` 
 
 Una búsqueda automatizada de patrones habituales en los archivos actuales no encontró claves AWS, claves privadas ni tokens GitHub evidentes. Esto no equivale a una auditoría exhaustiva de seguridad ni demuestra que el prototipo sea apto para producción. Las direcciones de AWS e identificadores originales fueron sustituidos por valores de ejemplo; no se debe desplegar la configuración sin revisarla y ajustarla.
 
+## EstudIA: evolución personal de Rumbo
+
+EstudIA es una propuesta en desarrollo de Angela Soplin Costa, basada en Rumbo, creado en equipo por Los más Kiros para el Kiro IAThon. Esta iteración explora una identidad visual renovada, un perro peruano como tutor y un recorrido guiado de estudio. El nombre es una propuesta para esta versión; el proyecto original conserva su nombre y el reconocimiento al equipo.
+
 ## Iteración de UX: recorrido guiado
 
 En `web/recorrido.html` se puede probar un primer recorrido de ejemplo con una mascota tutora: elegir objetivo, ver una ruta fija, responder una pregunta y celebrar el avance. Los contenidos son ficticios; no se cargan archivos, no se genera contenido con IA y el avance no se guarda. Para probarlo localmente, inicia un servidor estático en `web/` (por ejemplo, `python3 -m http.server 8000 --directory web`) y visita `/recorrido.html`.
