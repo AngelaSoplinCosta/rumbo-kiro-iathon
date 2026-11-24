@@ -3,7 +3,7 @@
 
 **Proyecto colaborativo · Kiro IAThon de AWS · Equipo T034, Los más Kiros**
 
-Rumbo es un prototipo que explora cómo ayudar a estudiantes a organizar su estudio y retomar el ritmo cuando se atrasan. El equipo abordó un problema frecuente: tener materiales, una fecha de examen y poco tiempo, pero no saber por dónde empezar.
+Rumbo es un prototipo de tecnología educativa que explora cómo transformar materiales de estudio y una fecha objetivo en una experiencia de aprendizaje estructurada. El equipo abordó una dificultad frecuente: organizar el tiempo, priorizar temas y retomar el estudio después de un atraso.
 
 > **Estado:** prototipo de hackathon. La interfaz incluye datos simulados y la API es una pieza independiente. Esta copia no demuestra un recorrido integrado de extremo a extremo ni un despliegue activo.
 
@@ -15,7 +15,7 @@ El equipo **Los más Kiros** estuvo integrado por Angela Soplin Costa, Ruth Nadi
 
 ## El problema y la solución propuesta
 
-El atraso puede convertirse en una acumulación de tareas y desmotivación. La propuesta de Rumbo conecta una ruta de estudio con sesiones breves y señales de seguimiento para facilitar que el estudiante retome.
+La propuesta organiza el recorrido del estudiante en cinco momentos: configuración, preparación, planificación, práctica y seguimiento. Su objetivo es facilitar el regreso al estudio mediante intervenciones graduales y sesiones breves.
 
 | Momento | Experiencia planteada | Estado de esta copia |
 | --- | --- | --- |
@@ -59,12 +59,12 @@ El diagrama representa los componentes considerados en el proyecto; las flechas 
 
 ## Explorar el código
 
-- [web/](web/): pantallas HTML, CSS y JavaScript del prototipo.
+- [web/](web/): interfaz y recorrido de demostración en HTML, CSS y JavaScript.
 - [src/app.py](src/app.py): entrada y rutas de la API.
 - [src/ruta.py](src/ruta.py): lógica de planificación.
 - [src/ia.py](src/ia.py): integración propuesta con Amazon Bedrock.
 - [src/riesgo.py](src/riesgo.py): señales e intervenciones de seguimiento.
-- [tests/](tests/): pruebas automatizadas con dependencias simuladas.
+- [tests/](tests/): pruebas automatizadas del backend con dependencias simuladas.
 - [template.yaml](template.yaml): infraestructura de la API con AWS SAM.
 - [.kiro/specs/rumbo/](.kiro/specs/rumbo/): especificaciones del proyecto.
 
