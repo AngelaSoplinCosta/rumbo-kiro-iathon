@@ -20,4 +20,10 @@ Python, HTML, CSS, JavaScript, AWS Lambda, API Gateway, DynamoDB, Amazon Bedrock
 
 ## Estado de esta copia
 
-Repositorio privado de preparación para portafolio. Incluye una copia del código y los documentos del ZIP de la entrega; se excluyeron cachés y archivos generados. Los identificadores de cuenta y enlaces del despliegue original se sustituyeron por ejemplos: es necesario configurar los recursos propios para desplegar. Antes de compartirlo públicamente se completará la revisión de seguridad y se aclararán los acuerdos del equipo sobre publicación y créditos.
+Repositorio privado de preparación para portafolio. Incluye una copia del código y los documentos del ZIP de la entrega; se excluyeron cachés y archivos generados. Los identificadores de cuenta y enlaces del despliegue original se sustituyeron por ejemplos: es necesario configurar los recursos propios para desplegar. El equipo autorizó compartir el código públicamente. Esta copia requiere una revisión de seguridad antes de exponerse como servicio y la distribución detallada de las contribuciones del equipo está pendiente de precisar.
+
+## Verificación de la copia
+
+Se ejecutaron **91 pruebas automatizadas** de los directorios `src/` y `tests/` del ZIP entregado, con Python 3.12, pytest y boto3; todas pasaron. Estas pruebas usan datos y servicios simulados y no verifican un despliegue AWS ni un recorrido integrado de usuario. El código de esos directorios se copió al repositorio sin cambios de funcionalidad.
+
+Una búsqueda automatizada de patrones habituales en los archivos actuales no encontró claves AWS, claves privadas ni tokens GitHub evidentes. Esto no equivale a una auditoría exhaustiva de seguridad ni demuestra que el prototipo sea apto para producción. Las direcciones de AWS e identificadores originales fueron sustituidos por valores de ejemplo; no se debe desplegar la configuración sin revisarla y ajustarla.
