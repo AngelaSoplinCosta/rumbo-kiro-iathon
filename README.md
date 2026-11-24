@@ -27,3 +27,7 @@ Repositorio privado de preparación para portafolio. Incluye una copia del códi
 Se ejecutaron **91 pruebas automatizadas** de los directorios `src/` y `tests/` del ZIP entregado, con Python 3.12, pytest y boto3; todas pasaron. Estas pruebas usan datos y servicios simulados y no verifican un despliegue AWS ni un recorrido integrado de usuario. El código de esos directorios se copió al repositorio sin cambios de funcionalidad.
 
 Una búsqueda automatizada de patrones habituales en los archivos actuales no encontró claves AWS, claves privadas ni tokens GitHub evidentes. Esto no equivale a una auditoría exhaustiva de seguridad ni demuestra que el prototipo sea apto para producción. Las direcciones de AWS e identificadores originales fueron sustituidos por valores de ejemplo; no se debe desplegar la configuración sin revisarla y ajustarla.
+
+## Iteración de UX: recorrido guiado
+
+En `web/recorrido.html` se puede probar un primer recorrido de ejemplo con una mascota tutora: elegir objetivo, ver una ruta fija, responder una pregunta y celebrar el avance. Los contenidos son ficticios; no se cargan archivos, no se genera contenido con IA y el avance no se guarda. Para probarlo localmente, inicia un servidor estático en `web/` (por ejemplo, `python3 -m http.server 8000 --directory web`) y visita `/recorrido.html`.
