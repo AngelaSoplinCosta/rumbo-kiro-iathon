@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Espacio</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+  <style>
+    .spin { width:16px;height:16px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;display:inline-block;animation:giro .7s linear infinite;vertical-align:-2px }
+    .spin.oscuro { border-color: rgba(79,70,229,.3); border-top-color: var(--marca); }
+    @keyframes giro { to { transform: rotate(360deg) } }
+    .sk { background: linear-gradient(90deg,#eef2f7 25%,#e2e8f0 37%,#eef2f7 63%); background-size:400% 100%; animation:shimmer 1.3s infinite; border-radius:8px; height:54px; margin:10px 0 }
+    @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+    .doc { display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--borde); font-size:0.9rem }
+    .doc:last-child { border-bottom:none }
+    .doc input[type=checkbox] { width:18px; height:18px; accent-color: var(--marca); cursor:pointer }
+    .doc .crece { overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+    /* Chat embebido */
+    .chat-caja { display:flex; flex-direction:column; height:420px }
+    .chat-hilo { flex:1; overflow-y:auto; padding-right:4px }
+    .chat-vacio { color:var(--texto-suave); text-align:center; margin-top:40px; font-size:0.92rem }
+    .chat-barra { display:flex; gap:10px; margin-top:12px }
+    .chat-barra input { flex:1; border:1px solid var(--borde); border-radius:999px; padding:12px 18px; font-size:0.95rem }
+    .chat-barra button { background:var(--marca); color:#fff; border:none; width:46px; border-radius:50%; font-size:1.1rem; cursor:pointer }
+    .chat-barra button:disabled { opacity:.5; cursor:default }
+    .doc-panel { background:#fbfcfe; border-left:1px solid var(--borde); padding:24px 20px }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <input type="file" id="file-extra" accept="application/pdf" multiple hidden />
+  <script src="auth.js"></script>
+  <script src="config.js"></script>
+  <script src="comun.js"></script>
+  <script type="module">
+    import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+    window.pdfjsLib = pdfjsLib;
+  </script>
+  <script>
+    if (AUTH.proteger()) {
+      const params = new URLSearchParams(location.search);
+      const esDemo = params.get("demo") === "1";
+      const cursoId = params.get("id");
+      let curso = null;
+
+      const CURSO_DEMO = {
+        id: "demo", nombre: "Física I (Demo)", fechaExamen: "2026-11-20",
+        plan: "Este es un curso de demostración. Tenés tiempo de sobra para dominar cinemática, leyes de Newton y energía: avanza un poco cada día y llegas listo 💪. Sube tus propios PDFs para generar un curso real con IA.",
+        planFuente: "bedrock",
+        documentos: [
+          { id: "d1", nombre: "Demo_Cinematica.pdf", incluir: true },
+          { id: "d2", nombre: "Demo_Newton.pdf", incluir: true },
+        ],
+        temas: [
+          { nombre: "Cinemática", importancia: 2, minutosEstimados: 30 },
+          { nombre: "Leyes de Newton", importancia: 3, minutosEstimados: 45 },
+          { nombre: "Trabajo y energía", importancia: 2, minutosEstimados: 30 },
+        ],
+        ruta: { dias: 21, modoRescate: false, sesiones: [
+          { fecha: "2026-10-30", tipo: "estudio", temas: ["Cinemática"], minutos: 30 },
+          { fecha: "2026-10-31", tipo: "estudio", temas: ["Leyes de Newton"], minutos: 45 },
+          { fecha: "2026-11-19", tipo: "simulacro", temas: ["Simulacro final"], minutos: 60 },
+        ] },
+      };
+
+      // Shell con panel derecho propio (lista de documentos).
+      document.getElementById("app").innerHTML =
+        '<div class="layout">' + barraLateral("espacios") +
+        '<main class="centro"><button class="menu-movil" onclick="abrirMenu()">☰ Menú</button><div id="cont"><div class="sk"></div><div class="sk"></div><div class="sk"></div></div></main>' +
+        '<aside class="doc-panel" id="doc-panel"></aside>' +
+        '</div><div class="velo" id="velo" onclick="cerrarMenu()"></div>';
+
+      async function extraerTexto(f) {
+        const buf = await f.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+        let t = ""; const max = Math.min(pdf.numPages, 30);
+        for (let i = 1; i <= max; i++) { const p = await pdf.getPage(i); const c = await p.getTextContent(); t += c.items.map((it) => it.str).join(" ") + "\n"; }
+        return t;
+      }
+
+      async function cargar() {
+        if (esDemo) { curso = CURSO_DEMO; pintar(); return; }
+        if (!cursoId) { pintarVacio(); return; }
+        try {
+          const resp = await fetch(API_URL + "/cursos/" + cursoId);
+          if (!resp.ok) { pintarVacio(); return; }
+          curso = await resp.json();
+          localStorage.setItem("rumbo_curso_id", cursoId);
+          pintar();
+        } catch (e) { pintarVacio(); }
+      }
+
+      function pintarVacio() {
+        document.getElementById("doc-panel").innerHTML = "";
+        document.getElementById("cont").innerHTML = `
+          <div class="centro-cab"><div><h1>Tu espacio</h1><p class="sub">Aún no has generado una ruta.</p></div></div>
+          <div class="tarjeta" style="text-align:center;padding:34px">📄<p class="mt">Sube tus PDFs para que Rumbo arme tu ruta.</p>
+            <a class="btn mt" href="subir.html">Subir PDFs y generar ruta</a></div>`;
+      }
+
+      function pintar() {
+        const r = curso.ruta;
+        const badge = esDemo ? ' <span class="pild" style="background:#fef3c7;color:#854d0e">DEMO</span>' : "";
+        const temas = curso.temas.map((t) => `<div class="doc">📘 <span class="crece">${t.nombre}${t.importancia === 3 ? " ⭐" : ""}</span><small style="color:var(--texto-suave)">${t.minutosEstimados} min</small></div>`).join("");
+        const sesiones = r.sesiones.map((s, i) => {
+          const ico = s.tipo === "simulacro" ? "📝" : (i === 0 ? "▶" : "📗");
+          return `<li><span class="nodo ${i === 0 ? "encurso" : ""}">${ico}</span><span class="txt"><b>${s.temas.join(", ")}</b><small>${s.fecha} · ${s.minutos} min</small></span>${i < r.sesiones.length - 1 ? '<span class="linea"></span>' : ""}</li>`;
+        }).join("");
+
+        const plan = curso.plan
+          ? `<p id="plan-texto">${curso.plan}</p><small style="color:var(--texto-suave)">✨ Redactado por IA (Amazon Bedrock)${curso.planFuente === "respaldo" ? " · versión rápida" : ""}</small>`
+          : (esDemo
+            ? `<p class="sub">Sube tus PDFs para que Rumbo redacte un plan real con IA.</p>`
+            : `<p id="plan-texto" class="sub">Pide a Rumbo que te redacte un plan motivador para estas sesiones.</p><button class="btn chico mt" id="btn-plan" onclick="generarPlan()">✨ Generar mi plan con IA</button>`);
+
+        document.getElementById("cont").innerHTML = `
+          <div class="centro-cab">
+            <div><h1>${curso.nombre}${badge}</h1><p class="sub">Examen el ${curso.fechaExamen} · ${curso.documentos.length} documentos · ${curso.temas.length} temas</p></div>
+          </div>
+
+          <div class="tarjeta" style="border:2px solid var(--marca)">
+            <span class="etiqueta">✨ Tu plan de estudio</span>
+            <div class="mt" id="plan-caja">${plan}</div>
+          </div>
+
+          ${esDemo ? "" : '<div class="tarjeta" id="ritmo-caja"><span class="etiqueta">Tu ritmo</span><div class="sk mt" style="height:16px"></div></div>'}
+
+          <div class="tarjeta"><span class="etiqueta">Temas detectados</span><div class="mt">${temas}</div></div>
+
+          <div class="tarjeta">
+            <div class="flex"><span class="etiqueta">Tu ruta de aprendizaje</span>${r.modoRescate ? '<span class="pild">modo rescate</span>' : ''}</div>
+            <ul class="camino mt" id="ruta">${sesiones}</ul>
+          </div>
+
+          <div class="tarjeta">
+            <span class="etiqueta">💬 Pregúntale a la IA sobre tus documentos</span>
+            <div class="chat-caja mt">
+              <div class="chat-hilo" id="chat-hilo"><p class="chat-vacio">Escribe una pregunta sobre el contenido de tus documentos.<br>Rumbo responde usando solo tu material (IA · Amazon Bedrock).</p></div>
+              <div class="chat-barra">
+                <input id="chat-input" placeholder="¿Qué dice la segunda ley de Newton?" ${esDemo ? "disabled" : ""} />
+                <button id="chat-btn" onclick="preguntar()" ${esDemo ? "disabled" : ""}>➤</button>
+              </div>
+              ${esDemo ? '<small style="color:var(--texto-suave);margin-top:8px">El chat funciona en cursos reales. Sube tus PDFs para activarlo.</small>' : ''}
+            </div>
+          </div>`;
+
+        pintarDocPanel();
+        if (!esDemo) cargarRitmo();
+        const input = document.getElementById("chat-input");
+        if (input) input.addEventListener("keydown", (e) => { if (e.key === "Enter") preguntar(); });
+      }
+
+      function pintarDocPanel() {
+        const docs = curso.documentos.map((d) => `
+          <div class="doc">
+            <input type="checkbox" ${d.incluir !== false ? "checked" : ""} ${esDemo ? "disabled" : ""} data-id="${d.id}" onchange="marcarCambio()" />
+            <span class="crece">📄 ${d.nombre}</span>
+          </div>`).join("");
+        document.getElementById("doc-panel").innerHTML = `
+          <div class="bloque-d">
+            <div class="flex"><div class="et">Documentos</div>
+              <button class="btn fantasma chico" ${esDemo ? "disabled" : ""} onclick="${esDemo ? "" : "agregar()"}">+ Agregar</button></div>
+            <p style="font-size:0.8rem;color:var(--texto-suave);margin:4px 0 10px">Marca los que entran en tu ruta.</p>
+            <div id="docs">${docs}</div>
+            <button class="btn ancho chico mt" id="btn-aplicar" onclick="aplicarSeleccion()" style="display:none">Actualizar ruta con la selección</button>
+          </div>
+          ${esDemo ? '<a class="btn ancho mt" href="subir.html">Crear curso real →</a>' : ''}`;
+      }
+
+      // Alerta temprana de abandono: el usuario ve su ritmo, nunca el puntaje.
+      function pintarRitmo(d) {
+        const caja = document.getElementById("ritmo-caja");
+        if (!caja) return;
+        const hoy = new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+        const pendienteHoy = curso.ruta.sesiones.some((s) => s.fecha === hoy && s.estado !== "completada");
+        const aviso = d.intervencion.avisoRuta ? `<p class="sub mt">${d.intervencion.avisoRuta}</p>` : "";
+        caja.innerHTML = `
+          <span class="etiqueta">Tu ritmo</span>
+          <p class="mt"><span class="ritmo ${d.nivel}">${d.ritmo.emoji} ${d.ritmo.texto}</span></p>
+          <p class="mt">${d.intervencion.mensaje}</p>${aviso}
+          ${pendienteHoy ? '<button class="btn chico mt" id="btn-completar" onclick="completarHoy()">✓ Completé mi sesión de hoy</button>' : ""}`;
+      }
+
+      async function cargarRitmo() {
+        try {
+          const resp = await fetch(API_URL + "/cursos/" + cursoId + "/riesgo");
+          if (resp.ok) pintarRitmo(await resp.json());
+          else document.getElementById("ritmo-caja")?.remove();
+        } catch (e) { document.getElementById("ritmo-caja")?.remove(); }
+      }
+
+      window.completarHoy = async () => {
+        const btn = document.getElementById("btn-completar");
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Guardando…'; }
+        try {
+          const resp = await fetch(API_URL + "/cursos/" + cursoId + "/actividad", {
+            method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ evento: "sesion_completada" }),
+          });
+          if (!resp.ok) { const e = await resp.json().catch(() => ({})); toast(e.error || "No se pudo guardar"); if (btn) { btn.disabled = false; btn.textContent = "✓ Completé mi sesión de hoy"; } return; }
+          const r = await fetch(API_URL + "/cursos/" + cursoId);
+          if (r.ok) curso = await r.json();
+          toast("¡Sesión registrada! Sigue así.");
+          pintar();
+        } catch (e) { toast("Error de conexión."); }
+      };
+
+      window.marcarCambio = () => { const b = document.getElementById("btn-aplicar"); if (b) b.style.display = "block"; };
+
+      window.aplicarSeleccion = async () => {
+        const incluidos = [...document.querySelectorAll('#docs input[type=checkbox]:checked')].map((c) => c.dataset.id);
+        const btn = document.getElementById("btn-aplicar");
+        btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Actualizando…';
+        document.getElementById("ruta").innerHTML = '<div class="sk"></div><div class="sk"></div>';
+        try {
+          const resp = await fetch(API_URL + "/cursos/" + cursoId + "/documentos", {
+            method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ incluidos }),
+          });
+          if (!resp.ok) { toast("No se pudo actualizar"); btn.disabled = false; btn.textContent = "Actualizar ruta con la selección"; return; }
+          curso = await resp.json();
+          toast("Ruta actualizada con los documentos seleccionados.");
+          pintar();
+        } catch (e) { toast("Error de conexión."); btn.disabled = false; }
+      };
+
+      window.preguntar = async () => {
+        const input = document.getElementById("chat-input");
+        const q = input.value.trim(); if (!q) return;
+        const hilo = document.getElementById("chat-hilo");
+        if (hilo.querySelector(".chat-vacio")) hilo.innerHTML = "";
+        const burbuja = (clase, html) => { const d = document.createElement("div"); d.className = "burbuja " + clase; d.innerHTML = html; hilo.appendChild(d); hilo.scrollTop = hilo.scrollHeight; return d; };
+        burbuja("usuario", q.replace(/</g, "&lt;"));
+        input.value = "";
+        const btn = document.getElementById("chat-btn"); btn.disabled = true;
+        const pensando = burbuja("asistente", '<span class="spin oscuro"></span> Pensando…');
+        try {
+          const resp = await fetch(API_URL + "/cursos/" + cursoId + "/chat", {
+            method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ pregunta: q }),
+          });
+          if (!resp.ok) { pensando.textContent = resp.status === 502 ? "El modelo no está disponible ahora. Intenta de nuevo." : "No pude responder."; btn.disabled = false; return; }
+          const d = await resp.json();
+          pensando.innerHTML = d.respuesta.replace(/</g, "&lt;").replace(/\n/g, "<br>") + (d.fuente === "respaldo" ? '<br><small style="color:var(--texto-suave)">respuesta rápida</small>' : "");
+        } catch (e) { pensando.textContent = "Error de conexión."; }
+        btn.disabled = false; hilo.scrollTop = hilo.scrollHeight;
+      };
+
+      window.generarPlan = async () => {
+        const btn = document.getElementById("btn-plan");
+        if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin oscuro"></span> Redactando con IA…'; }
+        const caja = document.getElementById("plan-caja");
+        caja.innerHTML = '<div class="sk" style="height:16px"></div><div class="sk" style="height:16px;width:90%"></div><div class="sk" style="height:16px;width:70%"></div>';
+        try {
+          const resp = await fetch(API_URL + "/cursos/" + cursoId + "/plan", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+          if (!resp.ok) { caja.innerHTML = '<p class="sub">No pudimos redactar el plan ahora.</p><button class="btn chico mt" onclick="generarPlan()">Reintentar</button>'; return; }
+          const d = await resp.json();
+          caja.innerHTML = `<p>${d.plan}</p><small style="color:var(--texto-suave)">✨ Redactado por IA (Amazon Bedrock)${d.fuente === "respaldo" ? " · versión rápida" : ""}</small>`;
+          toast("¡Plan generado con IA!");
+        } catch (e) { caja.innerHTML = '<p class="sub">Error de conexión.</p><button class="btn chico mt" onclick="generarPlan()">Reintentar</button>'; }
+      };
+
+      window.agregar = () => document.getElementById("file-extra").click();
+      document.getElementById("file-extra").onchange = async (ev) => {
+        const files = [...ev.target.files].filter((f) => f.type === "application/pdf");
+        if (!files.length) return;
+        toast("Procesando documentos…");
+        try {
+          const documentos = [];
+          for (const f of files) documentos.push({ nombre: f.name, texto: await extraerTexto(f) });
+          const resp = await fetch(API_URL + "/cursos/" + cursoId + "/documentos", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ documentos }) });
+          if (!resp.ok) { toast("No se pudo agregar"); return; }
+          curso = await resp.json();
+          toast(`Agregamos ${files.length} documento(s) y reorganizamos tu ruta.`);
+          pintar();
+        } catch (e) { toast("Error leyendo los PDFs."); }
+        ev.target.value = "";
+      };
+
+      cargar();
+    }
+  </script>
+</body>
+</html>

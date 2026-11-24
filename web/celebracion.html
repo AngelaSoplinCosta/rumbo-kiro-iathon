@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — ¡Volviste!</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+  <style>
+    .celebra { text-align:center; }
+    .celebra .em { font-size:5rem; animation:salto 0.6s ease; }
+    @keyframes salto { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
+  </style>
+</head>
+<body>
+  <div class="centro-pantalla">
+    <div class="caja-auth celebra">
+      <div class="em">💪</div>
+      <h1 style="font-size:1.6rem;margin-top:8px">¡Insignia "Volví"!</h1>
+      <p class="sub" style="margin:10px 0 20px">Volviste después de unos días. Empiezas una racha nueva hoy. +20 XP</p>
+      <a class="btn ancho" href="index.html">Seguir →</a>
+      <a class="btn fantasma ancho mt" href="progreso.html">Ver mis insignias</a>
+    </div>
+  </div>
+  <script src="auth.js"></script>
+  <script>if (!AUTH.haySesion()) window.location.replace("login.html");</script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Amigos</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Modal: añadir amigo -->
+  <div class="modal-fondo" id="m-amigo">
+    <div class="modal">
+      <h3>Añadir amigo</h3>
+      <p class="sub">Búscalo por su nombre de usuario o comparte tu enlace.</p>
+      <div class="campo"><label>Nombre de usuario</label>
+        <input id="in-amigo" placeholder="@usuario" /></div>
+      <button class="btn ancho mt" onclick="enviarSolicitud()">Enviar solicitud</button>
+      <button class="btn fantasma ancho mt" onclick="copiarInvite()">🔗 Copiar mi enlace de invitación</button>
+      <button class="btn fantasma ancho mt" onclick="cerrarModal('m-amigo')">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Modal: unirse a ruta -->
+  <div class="modal-fondo" id="m-ruta">
+    <div class="modal">
+      <h3>Unirte a una ruta</h3>
+      <p class="sub">Pega el código que te compartieron o elige una sugerida.</p>
+      <div class="campo"><label>Código de ruta</label>
+        <input id="in-ruta" placeholder="FIS1-2026" /></div>
+      <div class="campo"><label>Tu fecha de examen</label>
+        <input id="in-fecha" type="date" value="2026-11-05" /></div>
+      <button class="btn ancho mt" onclick="unirseCodigo()">Copiar ruta y unirme</button>
+      <button class="btn fantasma ancho mt" onclick="cerrarModal('m-ruta')">Cerrar</button>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="comun.js"></script>
+  <script>
+    if (AUTH.proteger()) {
+      const centro = `
+        <div class="centro-cab">
+          <div><h1>Amigos y rutas</h1><p class="sub">Estudien juntos la misma ruta.</p></div>
+          <div><button class="btn secundario chico" onclick="abrirModal('m-ruta')">+ Unirme a una ruta</button>
+          <button class="btn chico" onclick="abrirModal('m-amigo')">+ Añadir amigo</button></div>
+        </div>
+
+        <div class="tarjeta">
+          <span class="etiqueta">Tus amigos</span>
+          <div id="lista-amigos" class="mt">
+            <div class="fila"><span class="avatar sm" style="background:var(--esp-2)">M</span>
+              <span class="crece"><b>María</b><br><small style="color:var(--dominado)">✓ estudió hoy</small></span>
+              <button class="btn secundario chico" onclick="toast('Le enviaste un empujón a María 👋')">Empujón</button></div>
+            <div class="fila"><span class="avatar sm" style="background:var(--esp-3)">J</span>
+              <span class="crece"><b>José</b><br><small style="color:var(--texto-suave)">aún no estudia hoy</small></span>
+              <button class="btn secundario chico" onclick="toast('Le enviaste un empujón a José 👋')">Empujón</button></div>
+          </div>
+        </div>
+
+        <div class="tarjeta">
+          <span class="etiqueta">Rutas compartidas</span>
+          <div class="fila mt"><span>🧲</span><span class="crece"><b>Física I</b><br><small style="color:var(--texto-suave)">de María · 9 temas · 10 días</small></span>
+            <button class="btn chico" onclick="unirseRapido('Física I')">Unirme</button></div>
+          <div class="fila"><span>🧮</span><span class="crece"><b>Cálculo II — Admisión</b><br><small style="color:var(--texto-suave)">de Grupo UNI · 12 temas</small></span>
+            <button class="btn chico" onclick="unirseRapido('Cálculo II')">Unirme</button></div>
+        </div>
+
+        <div class="tarjeta">
+          <div class="flex"><span class="etiqueta">Liga · Física I</span><small style="color:var(--texto-suave)">reinicia en 3 días</small></div>
+          <div class="mt">
+            <div class="fila"><span class="pos">1</span><span class="avatar sm" style="background:var(--esp-2)">M</span><span class="crece"><b>María</b></span><b>82%</b></div>
+            <div class="fila"><span class="pos">2</span><span class="avatar sm">L</span><span class="crece"><b>Lucía (tú)</b></span><b>38%</b></div>
+            <div class="fila"><span class="pos">3</span><span class="avatar sm" style="background:var(--no-visto);color:#334155">A</span><span class="crece"><b>Anónimo</b></span><b>31%</b></div>
+            <div class="fila"><span class="pos">4</span><span class="avatar sm" style="background:var(--esp-3)">J</span><span class="crece"><b>José</b></span><b>20%</b></div>
+          </div>
+          <small style="color:var(--texto-suave)">Ranking por avance. Mide práctica real, no tiempo con la app abierta.</small>
+        </div>`;
+      montarApp({ activo: "amigos", centro });
+
+      window.enviarSolicitud = () => {
+        const v = document.getElementById("in-amigo").value.trim().replace(/^@/, "");
+        if (!v) { toast("Escribe un nombre de usuario"); return; }
+        const lista = document.getElementById("lista-amigos");
+        const fila = document.createElement("div");
+        fila.className = "fila";
+        fila.innerHTML = `<span class="avatar sm" style="background:#94a3b8">${v[0].toUpperCase()}</span>
+          <span class="crece"><b>@${v}</b><br><small style="color:var(--alerta)">solicitud enviada…</small></span>
+          <button class="btn fantasma chico" disabled>Pendiente</button>`;
+        lista.appendChild(fila);
+        cerrarModal("m-amigo");
+        document.getElementById("in-amigo").value = "";
+        toast(`Solicitud enviada a @${v}`);
+      };
+      window.copiarInvite = () => toast("Enlace copiado: rumbo.app/invita/lucia");
+      window.unirseCodigo = () => {
+        const c = document.getElementById("in-ruta").value.trim();
+        if (!c) { toast("Pega un código de ruta"); return; }
+        cerrarModal("m-ruta");
+        toast(`Te uniste a la ruta ${c}. Copiamos el temario a tus espacios.`);
+        setTimeout(() => (window.location.href = "espacios.html"), 1600);
+      };
+      window.unirseRapido = (nombre) => {
+        toast(`Te uniste a "${nombre}". Generamos tu ruta con tu disponibilidad.`);
+        setTimeout(() => (window.location.href = "ruta.html"), 1600);
+      };
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Asistente</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <script src="auth.js"></script>
+  <script>
+    // El chat con IA (Bedrock) vive dentro de cada curso. Esta pantalla antigua
+    // redirige al espacio, donde el asistente usa el contenido real de los documentos.
+    if (!AUTH.haySesion()) {
+      window.location.replace("login.html");
+    } else {
+      const id = localStorage.getItem("rumbo_curso_id");
+      window.location.replace(id ? ("espacio.html?id=" + id) : "espacios.html");
+    }
+  </script>
+</body>
+</html>

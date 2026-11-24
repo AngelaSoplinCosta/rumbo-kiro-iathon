@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Sesión</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <div id="app"></div>
+  <script src="auth.js"></script>
+  <script src="comun.js"></script>
+  <script>
+    if (AUTH.proteger()) {
+      const centro = `
+        <div class="centro-cab"><div style="width:100%">
+          <div class="flex"><h1 style="font-size:1.2rem">Sesión de hoy · Leyes de Newton</h1><a class="btn fantasma chico" href="index.html">⏸ Pausar</a></div>
+          <div class="barra mt"><span id="pbar" style="width:20%"></span></div>
+          <p class="sub" id="pn" style="margin-top:6px">Paso 1 de 5</p>
+        </div></div>
+
+        <section class="paso" data-paso="1"><div class="tarjeta">
+          <span class="etiqueta">Objetivo de hoy</span><h2 style="margin:8px 0">Entender F = m·a</h2>
+          <p>Vas a repasar la segunda ley de Newton y resolver 3 problemas. ⏱️ 60 min.</p></div></section>
+
+        <section class="paso" data-paso="2" style="display:none"><div class="tarjeta">
+          <span class="etiqueta">Material</span>
+          <p class="mt">La fuerza neta sobre un cuerpo es igual a su masa por su aceleración. Con masa constante, la aceleración es proporcional a la fuerza.</p>
+          <a class="cita" href="chat.html">📄 Cap3_Newton.pdf · pág. 3</a></div></section>
+
+        <section class="paso" data-paso="3" style="display:none"><div class="tarjeta">
+          <span class="etiqueta">Práctica</span>
+          <p class="mt" style="font-weight:600">Si duplicas la fuerza sobre un cuerpo de masa constante, su aceleración…</p>
+          <div id="opciones" class="mt">
+            <button class="btn fantasma ancho" style="margin-bottom:8px" onclick="responder(this,true)">Se duplica</button>
+            <button class="btn fantasma ancho" style="margin-bottom:8px" onclick="responder(this,false)">Se mantiene igual</button>
+            <button class="btn fantasma ancho" onclick="responder(this,false)">Se reduce a la mitad</button>
+          </div>
+          <p id="explica" style="display:none;color:var(--dominado);font-weight:600;margin-top:10px">✓ Correcto. F = m·a: con m constante, a crece igual que F. <a class="cita" href="chat.html">📄 pág. 3</a></p></div></section>
+
+        <section class="paso" data-paso="4" style="display:none"><div class="tarjeta" style="text-align:center">
+          <span class="etiqueta">Flashcard</span>
+          <h3 id="fc" style="margin:20px 0;min-height:40px">¿Unidad de la fuerza en el SI?</h3>
+          <button class="btn secundario" id="fcv" onclick="voltear()">Voltear</button>
+          <div id="fcb" style="display:none" class="grid3 mt">
+            <button class="btn fantasma chico" onclick="paso(5)">Otra vez</button>
+            <button class="btn fantasma chico" onclick="paso(5)">Difícil</button>
+            <button class="btn chico" onclick="paso(5)">Bien</button></div></div></section>
+
+        <section class="paso" data-paso="5" style="display:none"><div class="tarjeta" style="text-align:center">
+          <span class="etiqueta">¿Cómo te sentiste?</span>
+          <div style="font-size:2.2rem;margin:16px 0;cursor:pointer">
+            <span onclick="terminar()">😟</span><span onclick="terminar()">😐</span><span onclick="terminar()">🙂</span><span onclick="terminar()">😃</span><span onclick="terminar()">🤩</span></div></div></section>
+
+        <div class="flex mt"><span></span>
+          <button class="btn" id="sig" onclick="avanzar()">Siguiente →</button></div>`;
+      montarApp({ activo: "espacios", centro, derecho: false });
+
+      let actual = 1; const total = 5;
+      window.paso = (n) => {
+        document.querySelectorAll(".paso").forEach((s) => (s.style.display = "none"));
+        document.querySelector(`[data-paso="${n}"]`).style.display = "block";
+        document.getElementById("pbar").style.width = (n / total) * 100 + "%";
+        document.getElementById("pn").textContent = `Paso ${n} de ${total}`;
+        actual = n;
+        document.getElementById("sig").style.display = n === total ? "none" : "inline-flex";
+      };
+      window.avanzar = () => { if (actual < total) paso(actual + 1); };
+      window.responder = (b, ok) => {
+        document.querySelectorAll("#opciones button").forEach((x) => (x.disabled = true));
+        b.style.borderColor = ok ? "var(--dominado)" : "var(--debil)";
+        document.getElementById("explica").style.display = "block";
+      };
+      window.voltear = () => {
+        document.getElementById("fc").textContent = "El newton (N) = kg·m/s²";
+        document.getElementById("fcv").style.display = "none";
+        document.getElementById("fcb").style.display = "grid";
+      };
+      window.terminar = () => {
+        if (localStorage.getItem("rumbo_riesgo") === "medio") {
+          localStorage.setItem("rumbo_volvi", "1");
+          localStorage.removeItem("rumbo_riesgo");
+          window.location.href = "celebracion.html";
+        } else {
+          toast("¡Sesión completada! +50 XP 🎉");
+          setTimeout(() => (window.location.href = "index.html"), 1400);
+        }
+      };
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Iniciar sesión</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <div class="centro-pantalla">
+    <form class="caja-auth" onsubmit="return entrar(event)">
+      <div class="marca">Rumbo <span class="punto">🎓</span></div>
+      <p class="sub" style="text-align:center;margin-bottom:20px">Tu compañero de estudio contra el abandono.</p>
+      <div class="pista">Demo · usuario: <b>demo</b> · contraseña: <b>demo01</b></div>
+      <div class="campo">
+        <label>Usuario</label>
+        <input id="usuario" placeholder="demo" autocomplete="username" />
+      </div>
+      <div class="campo">
+        <label>Contraseña</label>
+        <input id="clave" type="password" placeholder="••••••" autocomplete="current-password" />
+      </div>
+      <p id="error" style="color:var(--debil);font-size:0.85rem;margin-top:10px;display:none">Usuario o contraseña incorrectos.</p>
+      <button class="btn ancho mt" type="submit">Entrar</button>
+    </form>
+  </div>
+  <script src="auth.js"></script>
+  <script>
+    // Si ya hay sesión, saltar directo.
+    if (AUTH.haySesion()) {
+      window.location.replace(AUTH.configuro() ? "index.html" : "onboarding.html");
+    }
+    function entrar(ev) {
+      ev.preventDefault();
+      const u = document.getElementById("usuario").value.trim();
+      const c = document.getElementById("clave").value;
+      if (AUTH.entrar(u, c)) {
+        window.location.href = AUTH.configuro() ? "index.html" : "onboarding.html";
+      } else {
+        document.getElementById("error").style.display = "block";
+      }
+      return false;
+    }
+  </script>
+</body>
+</html>

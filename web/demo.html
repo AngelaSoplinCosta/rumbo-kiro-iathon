@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Panel de demo</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <div id="app"></div>
+  <script src="auth.js"></script>
+  <script src="config.js"></script>
+  <script src="comun.js"></script>
+  <script>
+    if (AUTH.proteger()) {
+      const centro = `
+        <div class="centro-cab"><div><h1>Panel de demo 🎬</h1><p class="sub">Atajos para contar la historia de Lucía en vivo.</p></div></div>
+
+        <div class="tarjeta">
+          <span class="etiqueta">Guion paso a paso</span>
+          <ol style="margin:12px 0 0 18px;line-height:2">
+            <li>Entra con <b>demo / demo01</b> y completa la <a href="onboarding.html">configuración inicial</a>.</li>
+            <li>Muestra <a href="index.html">Hoy</a>, <a href="espacio.html">el espacio</a> y <a href="chat.html">el chat con citas</a>.</li>
+            <li>Enseña <a href="ruta.html">el camino</a> y haz <a href="sesion.html">una sesión</a>.</li>
+            <li>Muestra <a href="amigos.html">amigos</a>: añade un amigo y únete a una ruta.</li>
+            <li>Pulsa el botón de abajo para simular que Lucía se desconecta.</li>
+          </ol>
+        </div>
+
+        <div class="tarjeta">
+          <span class="etiqueta">Simular riesgo</span>
+          <p class="mt">Simula 3 días sin actividad y ejecuta el cierre del día y el cálculo de riesgo.</p>
+          <button class="btn mt" onclick="simular()">⏭️ Simular 3 días sin estudiar</button>
+          <p class="sub mt" id="estado">Riesgo actual: 🟢 bajo</p>
+        </div>
+
+        <div class="tarjeta">
+          <span class="etiqueta">Reiniciar</span>
+          <div class="fila-cards mt">
+            <button class="btn fantasma" onclick="reiniciarRiesgo()">↺ Reiniciar riesgo e insignias</button>
+            <button class="btn fantasma" onclick="reiniciarTodo()">🧹 Borrar sesión y onboarding</button>
+          </div>
+        </div>`;
+      montarApp({ activo: "hoy", centro });
+
+      const pintar = () => {
+        const r = localStorage.getItem("rumbo_riesgo");
+        document.getElementById("estado").textContent =
+          r === "medio" ? "Riesgo actual: 🟡 medio — se propone sesión de 5 min y se reorganiza la ruta" : "Riesgo actual: 🟢 bajo";
+      };
+      // Con un curso real, el riesgo lo calcula la API (POST /cursos/{id}/riesgo con una fecha simulada).
+      window.simular = async () => {
+        const cursoId = localStorage.getItem("rumbo_curso_id");
+        if (!cursoId) {
+          localStorage.setItem("rumbo_riesgo", "medio"); toast("Riesgo medio. Mira Hoy y la ruta.");
+          setTimeout(() => (window.location.href = "index.html"), 1600); return;
+        }
+        const futuro = new Date(Date.now() + 4 * 86400000).toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+        try {
+          const resp = await fetch(API_URL + "/cursos/" + cursoId + "/riesgo", {
+            method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ hoy: futuro }),
+          });
+          if (!resp.ok) { toast("No se pudo calcular el riesgo"); return; }
+          const d = await resp.json();
+          localStorage.setItem("rumbo_riesgo", d.nivel === "bajo" ? "bajo" : "medio");
+          document.getElementById("estado").textContent =
+            `Riesgo calculado por la API: ${d.ritmo.emoji} ${d.nivel} — ${d.intervencion.mensaje} ${d.intervencion.avisoRuta || ""}`;
+          toast("Riesgo recalculado. Abre el espacio para ver la ruta reorganizada.");
+        } catch (e) { toast("Error de conexión."); }
+      };
+      window.reiniciarRiesgo = () => { localStorage.removeItem("rumbo_riesgo"); localStorage.removeItem("rumbo_volvi"); pintar(); toast("Riesgo e insignias reiniciados"); };
+      window.reiniciarTodo = () => { localStorage.clear(); toast("Todo borrado. Vuelve al login."); setTimeout(() => (window.location.href = "login.html"), 1200); };
+      pintar();
+    }
+  </script>
+</body>
+</html>

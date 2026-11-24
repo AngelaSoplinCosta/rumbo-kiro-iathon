@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Correr pruebas al guardar",
+  "description": "Ejecuta las pruebas de la API cuando se guarda codigo Python o el template.",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/**/*.py",
+      "tests/**/*.py",
+      "template.yaml"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "python -m pytest -q tests"
+  }
+}

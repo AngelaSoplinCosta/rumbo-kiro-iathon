@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Progreso</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <div id="app"></div>
+  <script src="auth.js"></script>
+  <script src="comun.js"></script>
+  <script>
+    if (AUTH.proteger()) {
+      const volvi = localStorage.getItem("rumbo_volvi") === "1";
+      const centro = `
+        <div class="centro-cab"><div><h1>Progreso</h1><p class="sub">Síntesis semanal · Física I</p></div></div>
+
+        <div class="tarjeta">
+          <span class="etiqueta">Mapa conceptual</span>
+          <div class="mapa mt">
+            <span class="concepto c-dominado" onclick="toast('Cinemática: dominado')">Cinemática</span>
+            <span class="concepto c-dominado" onclick="toast('Movimiento 2D: dominado')">Movimiento 2D</span>
+            <span class="concepto c-progreso" onclick="toast('Leyes de Newton: en progreso')">Leyes de Newton</span>
+            <span class="concepto c-debil" onclick="toast('Dinámica: débil — a reforzar')">Dinámica</span>
+            <span class="concepto c-no-visto" onclick="toast('Energía: no visto')">Trabajo y energía</span>
+          </div>
+          <div class="flex mt" style="font-size:0.78rem;color:var(--texto-suave);flex-wrap:wrap;gap:10px;justify-content:flex-start">
+            <span>🟢 Dominado</span><span>🟡 En progreso</span><span>🔴 Débil</span><span>⚪ No visto</span></div>
+        </div>
+
+        <div class="fila-cards">
+          <div class="tarjeta"><span class="etiqueta">Plan de refuerzo</span>
+            <p class="mt">Esta semana priorizamos <b>Dinámica</b> porque salió débil en tu práctica.</p>
+            <a class="btn secundario chico mt" href="sesion.html">Practicar Dinámica →</a></div>
+          <div class="tarjeta"><span class="etiqueta">Mini simulacro</span>
+            <p class="mt">10 preguntas mezcladas de la semana.</p>
+            <a class="btn chico mt" href="sesion.html">Empezar →</a></div>
+        </div>
+
+        <div class="tarjeta">
+          <span class="etiqueta">Tus insignias</span>
+          <div class="grid3 mt">
+            <div class="insignia"><div class="em">🥇</div><small>Primer tema</small></div>
+            <div class="insignia"><div class="em">🔥</div><small>7 días</small></div>
+            <div class="insignia" style="opacity:${volvi ? 1 : 0.35}"><div class="em">💪</div><small>Volví</small></div>
+          </div>
+        </div>`;
+      montarApp({ activo: "progreso", centro });
+    }
+  </script>
+</body>
+</html>

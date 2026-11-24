@@ -1,0 +1,28 @@
+{
+  "CallerReference": "rumbo-iathon-web-2026",
+  "Comment": "Rumbo - prototipo web estatico",
+  "Enabled": true,
+  "DefaultRootObject": "index.html",
+  "Origins": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "Id": "s3-rumbo-web",
+        "DomainName": "rumbo-iathon-web-000000000000.s3.us-east-1.amazonaws.com",
+        "OriginAccessControlId": "E1AFOBJDHC6E0",
+        "S3OriginConfig": { "OriginAccessIdentity": "" }
+      }
+    ]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "s3-rumbo-web",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+    "Compress": true,
+    "AllowedMethods": {
+      "Quantity": 2,
+      "Items": ["GET", "HEAD"],
+      "CachedMethods": { "Quantity": 2, "Items": ["GET", "HEAD"] }
+    }
+  }
+}

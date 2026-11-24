@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Calendario</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <div id="app"></div>
+  <script src="auth.js"></script>
+  <script src="comun.js"></script>
+  <script>
+    if (AUTH.proteger()) {
+      const centro = `
+        <div class="centro-cab"><div><h1>Calendario</h1><p class="sub">Octubre – Noviembre · Física I</p></div></div>
+        <div class="tarjeta">
+          <div class="cal-grid" id="grid"></div>
+          <div class="flex mt" style="font-size:0.8rem;color:var(--texto-suave);flex-wrap:wrap;gap:14px;justify-content:flex-start">
+            <span><i class="punto p-completado" style="display:inline-block;width:12px;height:12px;border-radius:3px"></i> Completado</span>
+            <span><i class="punto p-pendiente" style="display:inline-block;width:12px;height:12px;border-radius:3px"></i> Pendiente</span>
+            <span><i class="punto p-vencido" style="display:inline-block;width:12px;height:12px;border-radius:3px"></i> Vencido</span>
+            <span><i class="punto p-examen" style="display:inline-block;width:12px;height:12px;border-radius:3px"></i> Examen</span>
+          </div>
+        </div>
+        <div class="tarjeta">
+          <div class="flex"><span class="etiqueta">Avance real vs. planificado</span><b style="color:var(--dominado)">Al día</b></div>
+          <div class="barra mt"><span style="width:38%"></span></div>
+          <small style="color:var(--texto-suave)">228 de 600 min · arrastra una sesión para moverla (demo)</small>
+        </div>`;
+      montarApp({ activo: "calendario", centro });
+
+      const grid = document.getElementById("grid");
+      ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"].forEach((d) => {
+        const c = document.createElement("div"); c.className = "dia-cab"; c.textContent = d; grid.appendChild(c);
+      });
+      const estados = {27:"completado",28:"completado",29:"completado",30:"pendiente",31:"pendiente",1:"pendiente",2:"pendiente",3:"pendiente",4:"pendiente",5:"examen"};
+      const hoy = 30;
+      for (let i = 0; i < 2; i++) grid.appendChild(document.createElement("div"));
+      const celda = (n) => {
+        const c = document.createElement("div");
+        c.className = "celda" + (n === hoy ? " hoy" : "");
+        c.innerHTML = `<span class="n">${n}</span>${estados[n] ? `<div class="punto p-${estados[n]}"></div>` : ""}`;
+        c.onclick = () => toast(`Día ${n}: ${estados[n] || "sin sesión"}`);
+        grid.appendChild(c);
+      };
+      for (let n = 27; n <= 31; n++) celda(n);
+      for (let n = 1; n <= 5; n++) celda(n);
+    }
+  </script>
+</body>
+</html>

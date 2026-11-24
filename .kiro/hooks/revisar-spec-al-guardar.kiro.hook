@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Revisar tasks.md al guardar la spec",
+  "description": "Cuando se guarda cualquier archivo de la spec, revisa que tasks.md siga coherente con requirements.md y design.md y que las tareas pendientes esten marcadas correctamente.",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      ".kiro/specs/**/requirements.md",
+      ".kiro/specs/**/design.md",
+      ".kiro/specs/**/tasks.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Se guardo un archivo de la spec en .kiro/specs/. Revisa tasks.md de esa misma carpeta: confirma que cada tarea corresponde a un requisito de requirements.md y a una decision de design.md, que el orden tiene sentido y que el estado de las casillas refleja lo ya implementado. Si algo no cuadra, propone los ajustes en tasks.md."
+  }
+}

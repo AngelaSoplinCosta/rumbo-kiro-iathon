@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Configura tu estudio</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <div class="centro-pantalla">
+    <div class="caja-auth">
+      <div class="marca">Rumbo <span class="punto">🎓</span></div>
+      <div class="pasos"><span class="p on" id="p1"></span><span class="p" id="p2"></span><span class="p" id="p3"></span></div>
+
+      <!-- Paso 1 -->
+      <section class="paso-ob" data-ob="1">
+        <h3>¡Bienvenida a Rumbo! 👋</h3>
+        <p class="sub" style="margin:8px 0 4px">Configuremos tu perfil. Esto solo se hace la primera vez.</p>
+        <div class="campo">
+          <label>¿Cómo te llamas?</label>
+          <input id="nombre" value="Lucía" />
+        </div>
+        <div class="campo">
+          <label>Institución o carrera (opcional)</label>
+          <input id="institucion" value="Ingeniería" />
+        </div>
+      </section>
+
+      <!-- Paso 2 -->
+      <section class="paso-ob" data-ob="2" style="display:none">
+        <h3>¿Cuánto tiempo puedes estudiar?</h3>
+        <p class="sub" style="margin:8px 0 4px">Rumbo arma tu ruta día por día con esto.</p>
+        <div class="campo">
+          <label>Entre semana (min/día)</label>
+          <input id="semana" type="number" value="60" />
+        </div>
+        <div class="campo">
+          <label>Fines de semana (min/día)</label>
+          <input id="finde" type="number" value="180" />
+        </div>
+        <div class="campo">
+          <label>Hora preferida de estudio</label>
+          <input id="hora" type="time" value="19:00" />
+        </div>
+      </section>
+
+      <!-- Paso 3 -->
+      <section class="paso-ob" data-ob="3" style="display:none">
+        <h3>¡Todo listo!</h3>
+        <p class="sub" style="margin:8px 0 12px">Guardamos tu disponibilidad. Esto no se vuelve a preguntar. Ahora crea tu primer espacio subiendo tus PDFs.</p>
+        <div class="tarjeta plana" style="text-align:center;padding:26px">
+          🎓 Al terminar vas a <b>Subir PDFs → generar ruta</b>
+        </div>
+      </section>
+
+      <div class="flex mt">
+        <button class="btn fantasma chico" id="atras" onclick="ir(-1)" style="visibility:hidden">← Atrás</button>
+        <button class="btn" id="siguiente" onclick="ir(1)">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+  <script src="auth.js"></script>
+  <script>
+    if (!AUTH.haySesion()) window.location.replace("login.html");
+    if (AUTH.configuro()) window.location.replace("index.html");
+
+    let paso = 1;
+    const total = 3;
+    function render() {
+      document.querySelectorAll(".paso-ob").forEach((s) => (s.style.display = "none"));
+      document.querySelector(`[data-ob="${paso}"]`).style.display = "block";
+      for (let i = 1; i <= total; i++) document.getElementById("p" + i).classList.toggle("on", i <= paso);
+      document.getElementById("atras").style.visibility = paso === 1 ? "hidden" : "visible";
+      document.getElementById("siguiente").textContent = paso === total ? "Empezar a estudiar →" : "Siguiente →";
+    }
+    function ir(d) {
+      if (d === 1 && paso === total) {
+        AUTH.marcarConfigurado();
+        // La primera vez, llevar directo al caso de uso: subir PDF -> ruta.
+        window.location.href = "subir.html";
+        return;
+      }
+      paso = Math.min(total, Math.max(1, paso + d));
+      render();
+    }
+    render();
+  </script>
+</body>
+</html>

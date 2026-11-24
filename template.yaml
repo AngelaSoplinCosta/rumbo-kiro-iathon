@@ -1,0 +1,211 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Rumbo - API del starter kit para la Kiro IAthon.
+  Lambda + API Gateway (HTTP API) + DynamoDB. Rutas publicas, sin autenticacion.
+
+Parameters:
+  TeamId:
+    Type: String
+    Description: Id publico del equipo en el portal de la Kiro IAthon.
+  ModelId:
+    Type: String
+    Default: us.anthropic.claude-haiku-4-5-20251001-v1:0
+    Description: Perfil de inferencia de Bedrock para la API Converse.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 29
+    MemorySize: 256
+  HttpApi:
+    # Tope de tasa por segundo para toda la API (protege el gasto en Bedrock y Lambda).
+    # Los cupos diarios por curso, IP y global estan en src/limites.py.
+    DefaultRouteSettings:
+      ThrottlingRateLimit: 20
+      ThrottlingBurstLimit: 40
+    CorsConfiguration:
+      AllowOrigins:
+        - "*"
+      AllowHeaders:
+        - "content-type"
+      AllowMethods:
+        - GET
+        - POST
+        - PUT
+        - OPTIONS
+
+Resources:
+  ItemsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      # Los contadores de limites de IA (limite#...) se borran solos con el atributo `expira`.
+      TimeToLiveSpecification:
+        AttributeName: expira
+        Enabled: true
+
+  # Frontend estatico (web/) empaquetado como capa: queda en /opt dentro de la Lambda.
+  WebLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Archivos del prototipo web servidos en GET /app.
+      ContentUri: web/
+      CompatibleRuntimes:
+        - python3.12
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.handler
+      Layers:
+        - !Ref WebLayer
+      Environment:
+        Variables:
+          WEB_DIR: /opt
+          TEAM_ID: !Ref TeamId
+          TABLE_NAME: !Ref ItemsTable
+          MODEL_ID: !Ref ModelId
+          # Cupos diarios de llamadas a Bedrock (ver src/limites.py).
+          LIMITE_CHAT_CURSO_DIA: "40"
+          LIMITE_PLAN_CURSO_DIA: "10"
+          LIMITE_TEMAS_CURSO_DIA: "15"
+          LIMITE_IA_IP_DIA: "80"
+          LIMITE_IA_GLOBAL_DIA: "1500"
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ItemsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource:
+                - !Sub "arn:aws:bedrock:*::foundation-model/*"
+                - !Sub "arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*"
+      Events:
+        Health:
+          Type: HttpApi
+          Properties:
+            Path: /health
+            Method: GET
+        CrearItem:
+          Type: HttpApi
+          Properties:
+            Path: /items
+            Method: POST
+        ListarItems:
+          Type: HttpApi
+          Properties:
+            Path: /items
+            Method: GET
+        ObtenerItem:
+          Type: HttpApi
+          Properties:
+            Path: /items/{id}
+            Method: GET
+        CrearCurso:
+          Type: HttpApi
+          Properties:
+            Path: /cursos
+            Method: POST
+        ListarCursos:
+          Type: HttpApi
+          Properties:
+            Path: /cursos
+            Method: GET
+        ObtenerCurso:
+          Type: HttpApi
+          Properties:
+            Path: /cursos/{id}
+            Method: GET
+        AgregarDocumentos:
+          Type: HttpApi
+          Properties:
+            Path: /cursos/{id}/documentos
+            Method: POST
+        SeleccionarDocumentos:
+          Type: HttpApi
+          Properties:
+            Path: /cursos/{id}/documentos
+            Method: PUT
+        ChatCurso:
+          Type: HttpApi
+          Properties:
+            Path: /cursos/{id}/chat
+            Method: POST
+        GenerarPlan:
+          Type: HttpApi
+          Properties:
+            Path: /cursos/{id}/plan
+            Method: POST
+        RegistrarActividad:
+          Type: HttpApi
+          Properties:
+            Path: /cursos/{id}/actividad
+            Method: POST
+        CalcularRiesgo:
+          Type: HttpApi
+          Properties:
+            Path: /cursos/{id}/riesgo
+            Method: GET
+        AplicarRiesgo:
+          Type: HttpApi
+          Properties:
+            Path: /cursos/{id}/riesgo
+            Method: POST
+        # Alerta temprana: evalua el riesgo de todos los cursos cada dia a las 04:30 de Lima (09:30 UTC).
+        RiesgoDiario:
+          Type: Schedule
+          Properties:
+            Schedule: cron(30 9 * * ? *)
+            Input: '{"tarea": "evaluar-riesgo"}'
+        CrearJob:
+          Type: HttpApi
+          Properties:
+            Path: /jobs
+            Method: POST
+        ObtenerJob:
+          Type: HttpApi
+          Properties:
+            Path: /jobs/{jobId}
+            Method: GET
+        App:
+          Type: HttpApi
+          Properties:
+            Path: /app
+            Method: GET
+        AppArchivo:
+          Type: HttpApi
+          Properties:
+            Path: /app/{proxy+}
+            Method: GET
+        Pumpkin:
+          Type: HttpApi
+          Properties:
+            Path: /pumpkin
+            Method: GET
+        Exorcise:
+          Type: HttpApi
+          Properties:
+            Path: /exorcise
+            Method: POST
+        Conjuro:
+          Type: HttpApi
+          Properties:
+            Path: /conjuro
+            Method: POST
+
+Outputs:
+  ApiUrl:
+    Description: URL base de la API (sin barra final).
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  WebUrl:
+    Description: URL del frontend servido por la Lambda (sin barra final).
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/app"

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Subir PDFs y generar ruta</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+  <style>
+    .dropzone { border: 2px dashed #c7d2fe; border-radius: 16px; padding: 34px; text-align: center; background: #fbfcff; cursor: pointer; transition: border-color .15s, background .15s; }
+    .dropzone.hover { border-color: var(--marca); background: var(--marca-suave); }
+    .dropzone .em { font-size: 2.6rem; }
+    .archivo-fila { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--borde); border-radius:11px; margin-top:10px; font-size:0.9rem; }
+    .archivo-fila .quitar { background:none;border:none;color:var(--debil);cursor:pointer;font-size:1.1rem }
+    .sk { background: linear-gradient(90deg,#eef2f7 25%,#e2e8f0 37%,#eef2f7 63%); background-size: 400% 100%; animation: shimmer 1.3s infinite; border-radius: 8px; }
+    @keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+    .sk-linea { height: 14px; margin: 9px 0; } .sk-nodo { height: 54px; margin: 10px 0; border-radius: 12px; }
+    .spin { width:16px;height:16px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;display:inline-block;animation:giro .7s linear infinite;vertical-align:-2px }
+    .spin.oscuro { border-color: rgba(79,70,229,.3); border-top-color: var(--marca); }
+    @keyframes giro { to { transform: rotate(360deg) } }
+    .pasos-proc { list-style:none; margin-top:8px } .pasos-proc li { display:flex; align-items:center; gap:10px; padding:9px 0; color:var(--texto-suave); font-size:0.92rem } .pasos-proc li.ok { color: var(--texto) } .pasos-proc li .ic { width:22px; text-align:center }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="auth.js"></script>
+  <script src="config.js"></script>
+  <script src="comun.js"></script>
+  <script type="module">
+    import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs";
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs";
+    window.pdfjsLib = pdfjsLib;
+  </script>
+  <script>
+    if (AUTH.proteger()) {
+      const centro = `
+        <div class="centro-cab">
+          <div><h1>Nuevo espacio desde tus PDFs</h1><p class="sub">Sube uno o varios PDFs y Rumbo arma tu ruta de aprendizaje.</p></div>
+        </div>
+
+        <div class="tarjeta">
+          <div class="campo" style="margin-top:0"><label>Nombre del curso o examen *</label>
+            <input id="nombre" placeholder="Ej.: Física I, Admisión 2027…" required /></div>
+          <div class="fila-cards mt">
+            <div class="campo" style="margin:0"><label>Fecha del examen</label>
+              <input id="fecha" type="date" value="2026-11-20" /></div>
+            <div class="campo" style="margin:0"><label>Minutos por día</label>
+              <input id="minutos" type="number" value="60" /></div>
+          </div>
+
+          <div class="dropzone mt" id="dz">
+            <div class="em">📄</div>
+            <b>Arrastra tus PDFs aquí o haz clic para elegirlos</b>
+            <p class="sub">Puedes subir varios · el texto se lee en tu navegador</p>
+            <input type="file" id="file" accept="application/pdf" multiple hidden />
+          </div>
+          <div id="lista-archivos"></div>
+          <div class="campo mt"><label for="texto-pegado">O pega el texto de tus apuntes</label>
+            <textarea id="texto-pegado" rows="5" style="width:100%;border:1px solid var(--borde);border-radius:11px;padding:10px 12px;font:inherit" placeholder="Ej.: Tema 1: Cinemática. La velocidad es el cambio de posición en el tiempo…"></textarea></div>
+
+          <button class="btn ancho mt" id="btn-generar" onclick="generar()" disabled>Generar ruta de aprendizaje</button>
+        </div>
+
+        <div id="proceso" style="display:none">
+          <div class="tarjeta"><span class="etiqueta">Procesando</span>
+            <ul class="pasos-proc" id="pasos">
+              <li data-p="1"><span class="ic">⏳</span> Leyendo tus PDFs…</li>
+              <li data-p="2"><span class="ic">⏳</span> Enviando el texto a Rumbo…</li>
+              <li data-p="3"><span class="ic">⏳</span> Detectando temas y prerrequisitos…</li>
+              <li data-p="4"><span class="ic">⏳</span> Armando tu ruta día por día…</li>
+            </ul></div>
+          <div class="tarjeta"><span class="etiqueta">Vista previa</span>
+            <div id="skeleton" class="mt">
+              <div class="sk sk-linea" style="width:60%"></div>
+              <div class="sk sk-nodo"></div><div class="sk sk-nodo"></div><div class="sk sk-nodo"></div>
+            </div></div>
+        </div>
+
+        <div id="resultado" style="display:none"></div>`;
+      montarApp({ activo: "espacios", centro, derecho: false });
+
+      const dz = document.getElementById("dz");
+      const file = document.getElementById("file");
+      let archivos = []; // {file, name, size}
+      // Mismos topes que la API (src/validacion.py): 10 documentos por curso.
+      const MAX_PDFS = 10, MAX_MB_PDF = 20;
+
+      dz.onclick = () => file.click();
+      dz.ondragover = (e) => { e.preventDefault(); dz.classList.add("hover"); };
+      dz.ondragleave = () => dz.classList.remove("hover");
+      dz.ondrop = (e) => { e.preventDefault(); dz.classList.remove("hover"); agregarArchivos(e.dataTransfer.files); };
+      file.onchange = () => agregarArchivos(file.files);
+
+      function agregarArchivos(lista) {
+        for (const f of lista) {
+          if (f.type !== "application/pdf") { toast(`"${f.name}" no es PDF, lo omitimos`); continue; }
+          if (f.size > MAX_MB_PDF * 1024 * 1024) { toast(`"${f.name}" pesa más de ${MAX_MB_PDF} MB, lo omitimos`); continue; }
+          if (archivos.length >= MAX_PDFS) { toast(`Máximo ${MAX_PDFS} PDFs por curso`); break; }
+          if (archivos.some((a) => a.name === f.name && a.size === f.size)) continue;
+          archivos.push({ file: f, name: f.name, size: f.size });
+        }
+        pintarLista();
+      }
+      function quitar(i) { archivos.splice(i, 1); pintarLista(); }
+      window.quitar = quitar;
+
+      function pintarLista() {
+        document.getElementById("lista-archivos").innerHTML = archivos
+          .map((a, i) => `<div class="archivo-fila">📄 <span class="crece">${a.name}</span><small style="color:var(--texto-suave)">${(a.size/1024).toFixed(0)} KB</small><button class="quitar" onclick="quitar(${i})" title="Quitar">✕</button></div>`)
+          .join("");
+        actualizarBoton();
+      }
+      function textoPegado() { return document.getElementById("texto-pegado").value.trim(); }
+      function actualizarBoton() {
+        document.getElementById("btn-generar").disabled = archivos.length === 0 && textoPegado().length === 0;
+      }
+      document.getElementById("texto-pegado").addEventListener("input", actualizarBoton);
+
+      function marcarPaso(n) { const li = document.querySelector(`#pasos li[data-p="${n}"]`); if (li) { li.classList.add("ok"); li.querySelector(".ic").textContent = "✅"; } }
+      function cargandoPaso(n) { const li = document.querySelector(`#pasos li[data-p="${n}"]`); if (li) li.querySelector(".ic").innerHTML = '<span class="spin oscuro"></span>'; }
+
+      async function extraerTexto(f) {
+        const buf = await f.arrayBuffer();
+        const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+        let texto = "";
+        const max = Math.min(pdf.numPages, 30);
+        for (let i = 1; i <= max; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          texto += content.items.map((it) => it.str).join(" ") + "\n";
+        }
+        return texto;
+      }
+
+      window.generar = async () => {
+        if (!archivos.length && !textoPegado()) return;
+        const nombreVal = document.getElementById("nombre").value.trim();
+        if (!nombreVal) {
+          toast("Escribe un nombre para el curso o examen");
+          document.getElementById("nombre").focus();
+          document.getElementById("nombre").style.borderColor = "var(--debil)";
+          return;
+        }
+        const btn = document.getElementById("btn-generar");
+        btn.disabled = true; btn.innerHTML = '<span class="spin"></span> Generando…';
+        document.getElementById("proceso").style.display = "block";
+        document.getElementById("resultado").style.display = "none";
+
+        try {
+          cargandoPaso(1);
+          const documentos = [];
+          for (const a of archivos) {
+            const texto = await extraerTexto(a.file);
+            documentos.push({ nombre: a.name, texto });
+          }
+          if (textoPegado()) documentos.push({ nombre: "Apuntes pegados.pdf", texto: textoPegado() });
+          marcarPaso(1);
+          const totalTexto = documentos.reduce((n, d) => n + d.texto.trim().length, 0);
+          if (totalTexto < 20) { toast("Necesitamos al menos 20 caracteres de texto (PDF con texto o apuntes pegados)."); resetBtn(); return; }
+
+          cargandoPaso(2);
+          const cuerpo = {
+            nombre: nombreVal,
+            documentos,
+            fechaExamen: document.getElementById("fecha").value,
+            minutosPorDia: Number(document.getElementById("minutos").value) || 60,
+          };
+          const resp = await fetch(API_URL + "/cursos", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(cuerpo) });
+          marcarPaso(2); cargandoPaso(3); await new Promise((r) => setTimeout(r, 500));
+          if (!resp.ok) { const e = await resp.json().catch(() => ({})); toast(e.error || "No pudimos generar la ruta"); resetBtn(); return; }
+          const curso = await resp.json();
+          marcarPaso(3); cargandoPaso(4); await new Promise((r) => setTimeout(r, 500)); marcarPaso(4);
+
+          localStorage.setItem("rumbo_curso_id", curso.id);
+          localStorage.setItem("rumbo_curso", JSON.stringify(curso));
+          toast("¡Ruta generada!");
+          setTimeout(() => (window.location.href = "espacio.html?id=" + curso.id), 700);
+        } catch (err) {
+          console.error(err); toast("Error leyendo los PDFs. Intenta de nuevo."); resetBtn();
+        }
+      };
+      function resetBtn() { const b = document.getElementById("btn-generar"); b.disabled = false; b.textContent = "Generar ruta de aprendizaje"; document.getElementById("proceso").style.display = "none"; }
+    }
+  </script>
+</body>
+</html>

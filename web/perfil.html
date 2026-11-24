@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumbo — Perfil</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+  <div id="app"></div>
+  <script src="auth.js"></script>
+  <script src="comun.js"></script>
+  <script>
+    if (AUTH.proteger()) {
+      const centro = `
+        <div class="centro-cab">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span class="avatar lg">L</span>
+            <div><h1>Lucía</h1><p class="sub">@lucia · Ingeniería</p></div>
+          </div>
+          <button class="btn fantasma chico" onclick="AUTH.salir()">Cerrar sesión</button>
+        </div>
+
+        <div class="fila-cards">
+          <div class="tarjeta"><span class="etiqueta">Disponibilidad</span>
+            <div class="flex mt"><span>Lun a Vie</span><b>60 min</b></div>
+            <div class="flex"><span>Sábados</span><b>180 min</b></div>
+            <div class="flex"><span>Hora preferida</span><b>19:00</b></div>
+            <div class="flex"><span>Silencio</span><b>22:00 – 07:00</b></div></div>
+          <div class="tarjeta"><span class="etiqueta">Privacidad</span>
+            <label class="flex mt"><span>Mis amigos ven mi actividad</span><input type="checkbox" checked></label>
+            <label class="flex"><span>Mis amigos ven mi avance</span><input type="checkbox" checked></label>
+            <label class="flex"><span>Avisar a mis amigos si estoy en riesgo</span><input type="checkbox"></label></div>
+        </div>
+
+        <div class="tarjeta">
+          <span class="etiqueta">Tu cuenta</span>
+          <div class="fila-cards mt">
+            <button class="btn secundario" onclick="toast('Enlace válido 15 min copiado')">📲 Usar en otro dispositivo</button>
+            <button class="btn fantasma" onclick="toast('Demo: descarga de datos en JSON')">⬇️ Descargar mis datos</button>
+            <button class="btn peligro" onclick="toast('Demo: eliminación de cuenta')">🗑️ Eliminar mi cuenta</button>
+          </div>
+        </div>
+
+        <div class="tarjeta">
+          <span class="etiqueta">Demo</span>
+          <p class="mt sub">Reinicia el onboarding para volver a ver la configuración inicial.</p>
+          <button class="btn fantasma chico mt" onclick="reiniciarOnb()">↺ Rehacer configuración inicial</button>
+        </div>`;
+      montarApp({ activo: "hoy", centro });
+
+      window.reiniciarOnb = () => {
+        localStorage.removeItem("rumbo_onboarding");
+        toast("Onboarding reiniciado");
+        setTimeout(() => (window.location.href = "onboarding.html"), 1000);
+      };
+    }
+  </script>
+</body>
+</html>

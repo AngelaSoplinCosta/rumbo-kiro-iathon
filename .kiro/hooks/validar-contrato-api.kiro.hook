@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Hook del más allá: validar contrato de la API 👻",
+  "description": "Cuando se guarda src/app.py, template.yaml o un test, corre las pruebas para verificar que los contratos de las insignias (health, items, jobs, cursos, plan GenAI y retos de halloween) siguen cumpliéndose.",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/app.py",
+      "src/ruta.py",
+      "src/ia.py",
+      "template.yaml",
+      "tests/**/*.py"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "python -m pytest -q tests"
+  }
+}
